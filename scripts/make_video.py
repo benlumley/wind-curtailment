@@ -5,8 +5,8 @@ from lib.db_utils import DbRepository
 from lib.data.main import analyze_curtailment
 
 DATA_PATH = Path("./data/locations")
-start_time = "2022-09-30 00:00:00"
-end_time = "2022-10-01 00:00:00"
+start_time = "2022-06-10 00:00:00"
+end_time = "2022-06-11 00:00:00"
 
 # load locations
 df_bm = pd.read_csv(DATA_PATH / "bm_units_with_locations.csv")
@@ -27,6 +27,7 @@ for time in pd.date_range(start=start_time, end=end_time, freq="30T"):
     df_curtilament_one_time = df_curtilament[df_curtilament["Time"] == time]
     df_curtilament_one_time.set_index("unit", drop=True, inplace=True)
     df_all = df_curtilament_one_time.merge(df_bm, on="unit")
+    df_all.dropna(how="any", inplace=True)
 
     print(df_all["delta"].sum())
 
@@ -35,7 +36,7 @@ for time in pd.date_range(start=start_time, end=end_time, freq="30T"):
     # Define a layer to display on a map
     layer = pdk.Layer(
         "ScatterplotLayer",
-        df_bm,
+        df_all,
         pickable=True,
         opacity=0.6,
         stroked=False,
@@ -60,3 +61,38 @@ for time in pd.date_range(start=start_time, end=end_time, freq="30T"):
     )
 
     r.to_html(f"video/scatterplot_{time}.html")
+
+# make video
+import cv2
+import os
+import imgkit
+
+imgkit.from_file('test.html', 'out.jpg')
+
+image_folder = 'video'
+video_name = f'video/video_{start_time}_{end_time}.avi'
+
+# change html to png
+from html2image import Html2Image
+hti = Html2Image(output_path=image_folder)
+
+images = [img for img in os.listdir(image_folder) if img.endswith(".html")]
+for img in images:
+    hti.screenshot(
+        html_file=f'{image_folder}/{img}',
+        save_as=f'{img.replace("html","png")}'
+    )
+
+images = [img for img in os.listdir(image_folder) if img.endswith(".png")]
+
+# TODO sort by file name
+frame = cv2.imread(os.path.join(image_folder, images[0]))
+height, width, layers = frame.shape
+
+video = cv2.VideoWriter(video_name, 0, 1, (width,height))
+
+for image in images:
+    video.write(cv2.imread(os.path.join(image_folder, image)))
+
+cv2.destroyAllWindows()
+video.release()
