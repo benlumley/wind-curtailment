@@ -70,7 +70,7 @@ def fetch_and_load_data(
 
         data_df = read_data(start_time=start_chunk, end_time=end_chunk)
 
-        if len(data_df) > 0 and not check_data:
+        if (len(data_df) > 0) or (not check_data):
             logger.warning(f'Found data between {start_chunk} and {end_chunk}, so wont pull any.')
         else:
 
