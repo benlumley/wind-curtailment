@@ -1,11 +1,12 @@
-bash scripts/data/january_2022.sh
-bash scripts/data/febuary_2022.sh
-bash scripts/data/march_2022.sh
-bash scripts/data/april_2022.sh
-bash scripts/data/may_2022.sh
-bash scripts/data/june_2022.sh
-bash scripts/data/july_2022.sh
-bash scripts/data/august_2022.sh
-bash scripts/data/september_2022.sh
-bash scripts/data/october_2022.sh
-bash scripts/data/november_2022.sh
+nohup bash scripts/data/january_2022.sh >>jan.txt &
+nohup bash scripts/data/febuary_2022.sh >>feb.txt &
+nohup bash scripts/data/march_2022.sh >>mar.txt &
+nohup bash scripts/data/april_2022.sh >>api.txt &
+nohup bash scripts/data/may_2022.sh >>may.txt &
+nohup bash scripts/data/june_2022.sh >>jun.txt &
+nohup bash scripts/data/july_2022.sh >>jul.txt &
+nohup bash scripts/data/august_2022.sh >>aug.txt &
+nohup bash scripts/data/september_2022.sh >>sep.txt &
+nohup bash scripts/data/october_2022.sh >>oct.txt &
+nohup bash scripts/data/november_2022.sh >>nov.txt &
+nohup bash scripts/data/december_2022.sh >>dec.txt &

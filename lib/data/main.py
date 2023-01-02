@@ -13,7 +13,7 @@ from lib.data.fetch_boa_data import run_boa
 from lib.data.fetch_bod_data import run_bod
 from lib.data.fetch_sbp_data import call_sbp_api
 from lib.db_utils import drop_and_initialize_tables, drop_and_initialize_bod_table, DbRepository
-from lib.gcp_db_utils import load_data, write_curtailment_data, write_sbp_data
+from lib.gcp_db_utils import load_data, write_curtailment_data, write_sbp_data, read_data
 
 logger = logging.getLogger(__name__)
 
@@ -24,10 +24,13 @@ def fetch_and_load_data(
     chunk_size_minutes: int = 60,
     multiprocess: bool = True,
     pull_data_once: bool = True,
+    check_data: bool = False
 ):
     """
     Entrypoint for the scheduled data refresh. Fetches data from Elexon and pushes
     to the postgres instance.
+
+    check_data: option to check if the data is the database first, default to False
 
     Writes a CSV as intermediate step
     """
@@ -65,58 +68,64 @@ def fetch_and_load_data(
         drop_and_initialize_tables(db_url)
         drop_and_initialize_bod_table(db_url)
 
-        # get BOAs and BODs
-        run_boa(
-            start_date=start_chunk,
-            end_date=end_chunk,
-            units=wind_units,
-            chunk_size_in_days=chunk_size_minutes / 24 / 60,
-            database_engine=engine,
-            cache=True,
-            multiprocess=multiprocess,
-            pull_data_once=pull_data_once,
-        )
-        run_bod(
-            start_date=start_chunk,
-            end_date=end_chunk,
-            units=wind_units,
-            chunk_size_in_days=chunk_size_minutes / 24 / 60,
-            database_engine=engine,
-            cache=True,
-            multiprocess=multiprocess,
-            pull_data_once=pull_data_once,
-        )
+        data_df = read_data(start_time=start_chunk, end_time=end_chunk)
 
-        logger.info("Running analysis")
-        db = DbRepository(db_url)
-        df = analyze_curtailment(db, str(start_chunk), str(end_chunk))
+        if len(data_df) > 0 and not check_data:
+            logger.warning(f'Found data between {start_chunk} and {end_chunk}, so wont pull any.')
+        else:
 
-        df.to_csv(f"./data/outputs/results-{start_chunk}-{end_chunk}.csv")
+            # get BOAs and BODs
+            run_boa(
+                start_date=start_chunk,
+                end_date=end_chunk,
+                units=wind_units,
+                chunk_size_in_days=chunk_size_minutes / 24 / 60,
+                database_engine=engine,
+                cache=True,
+                multiprocess=multiprocess,
+                pull_data_once=pull_data_once,
+            )
+            run_bod(
+                start_date=start_chunk,
+                end_date=end_chunk,
+                units=wind_units,
+                chunk_size_in_days=chunk_size_minutes / 24 / 60,
+                database_engine=engine,
+                cache=True,
+                multiprocess=multiprocess,
+                pull_data_once=pull_data_once,
+            )
 
-        # load csv and save to database
-        df = load_data(f"./data/outputs/results-{start_chunk}-{end_chunk}.csv")
+            logger.info("Running analysis")
+            db = DbRepository(db_url)
+            df = analyze_curtailment(db, str(start_chunk), str(end_chunk))
 
-        logger.info(f"Pushing to postgres, {len(df)} rows")
-        try:
-            write_curtailment_data(df=df)
-            logger.info("Pushing to postgres :done")
-        except Exception as e:
-            logger.warning("Writing the df failed, but going to carry on anyway")
-            logger.error(e)
+            # df.to_csv(f"./data/outputs/results-{start_chunk}-{end_chunk}.csv")
+            #
+            # # load csv and save to database
+            # df = load_data(f"./data/outputs/results-{start_chunk}-{end_chunk}.csv")
 
-        df_sbp = call_sbp_api(
-            start_date=start_chunk,
-            end_date=end_chunk,
-        )
+            logger.info(f"Pushing to postgres, {len(df)} rows")
+            try:
+                write_curtailment_data(df=df)
+                logger.info("Pushing to postgres :done")
+            except Exception as e:
+                logger.warning("Writing the df failed, but going to carry on anyway")
+                logger.error(e)
 
-        try:
-            write_sbp_data(df=df_sbp)
-            logger.info("Pushing SBP data to postgres :done")
-        except Exception as e:
-            logger.warning("Writing the df_sbp failed, but going to carry on anyway")
-            logger.error(e)
+            df_sbp = call_sbp_api(
+                start_date=start_chunk,
+                end_date=end_chunk,
+            )
 
-        # bump up the start_chunk by 30 minutes
-        start_chunk = start_chunk + pd.Timedelta(f"{chunk_size_minutes}T")
+            try:
+                write_sbp_data(df=df_sbp)
+                logger.info("Pushing SBP data to postgres :done")
+            except Exception as e:
+                logger.warning("Writing the df_sbp failed, but going to carry on anyway")
+                logger.error(e)
+
+            # bump up the start_chunk by 30 minutes
+            start_chunk = start_chunk + pd.Timedelta(f"{chunk_size_minutes}T")
 
     return df
