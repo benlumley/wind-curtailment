@@ -1,7 +1,7 @@
 nohup bash scripts/data/january_2022.sh >>jan.txt &
 nohup bash scripts/data/febuary_2022.sh >>feb.txt &
 nohup bash scripts/data/march_2022.sh >>mar.txt &
-nohup bash scripts/data/april_2022.sh >>api.txt &
+nohup bash scripts/data/april_2022.sh >>apr.txt &
 nohup bash scripts/data/may_2022.sh >>may.txt &
 nohup bash scripts/data/june_2022.sh >>jun.txt &
 nohup bash scripts/data/july_2022.sh >>jul.txt &
