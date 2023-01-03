@@ -20,7 +20,7 @@ df_bm.set_index("unit", drop=True, inplace=True)
 physical_data_database = f"phys_data_{start_time}_{end_time}.db"
 db = DbRepository(physical_data_database)
 a = db.get_data_for_time_range(start_time=start_time, end_time=end_time)
-df_curtilament = analyze_curtailment(db, start_time=start_time, end_time=end_time)
+df_curtilament = analyze_curtailment(db, start_time=start_time, end_time=end_time, group_by_unit=False)
 
 
 # select one time period

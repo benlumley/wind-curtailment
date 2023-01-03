@@ -172,7 +172,7 @@ def analyze_one_unit(
     return df_merged
 
 
-def analyze_curtailment(db: DbRepository, start_time, end_time) -> pd.DataFrame:
+def analyze_curtailment(db: DbRepository, start_time, end_time, group_by_unit=True) -> pd.DataFrame:
     """Produces a dataframe characterizing curtailment between `start_time` and `end_time`
 
     This uses the SQLite Db's as input, generating a DF that can then be loaded to the Postgres Db
@@ -215,6 +215,7 @@ def analyze_curtailment(db: DbRepository, start_time, end_time) -> pd.DataFrame:
             df_fpn_unit=df_fpn_unit,
             df_bod_unit=df_bod_unit,
         )
+        df_curtailment_unit['unit'] = unit
 
         curtailment_in_mwh = calculate_curtailment_in_mwh(df_curtailment_unit)
         generation_in_mwh = calculate_notified_generation_in_mwh(df_curtailment_unit)
@@ -239,7 +240,8 @@ def analyze_curtailment(db: DbRepository, start_time, end_time) -> pd.DataFrame:
     # group and sum by time (in 30 mins chunks)
     df_curtailment = df_curtailment.reset_index()
     df_curtailment["Time"] = pd.to_datetime(df_curtailment["Time"]).dt.floor("30T")
-    df_curtailment = df_curtailment.groupby(["Time"]).sum(numeric_only=True)
+    if group_by_unit:
+        df_curtailment = df_curtailment.groupby(["Time"]).sum(numeric_only=True)
 
     # Move 'Time' back to a column
     df_curtailment = df_curtailment.reset_index()
