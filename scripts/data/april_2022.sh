@@ -27,5 +27,4 @@ python scripts/fetch_data_and_calculate_curtailment.py --start=2021-04-26 --end=
 python scripts/fetch_data_and_calculate_curtailment.py --start=2021-04-27 --end=2021-04-28
 python scripts/fetch_data_and_calculate_curtailment.py --start=2021-04-28 --end=2021-04-29
 python scripts/fetch_data_and_calculate_curtailment.py --start=2021-04-29 --end=2021-04-30
-python scripts/fetch_data_and_calculate_curtailment.py --start=2021-04-30 --end=2021-04-31
-python scripts/fetch_data_and_calculate_curtailment.py --start=2021-04-31 --end=2021-05-01
+python scripts/fetch_data_and_calculate_curtailment.py --start=2021-04-30 --end=2021-05-01

@@ -178,7 +178,7 @@ def fetch_and_load_one_chunk(
     while not fpn_success and retries < MAX_RETRIES:
         logger.info("Retrying FPN after sleep")
         time.sleep(np.random.randint(1, 20))
-        fpn_success = write_fpn_to_db(df_fpn)
+        fpn_success = write_fpn_to_db(df_fpn, database_engine)
 
     # Separated these because pandas autocommits, so FPN could end up being retried unecessarily
     # if subsequent BOAL write has failed!

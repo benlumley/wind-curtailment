@@ -107,6 +107,9 @@ def fetch_and_load_data(
             db = DbRepository(db_url)
             df = analyze_curtailment(db, str(start_chunk), str(end_chunk))
 
+            df = df[df['Time'] >= start_chunk]
+            df = df[df['Time'] < end_chunk]
+
             # df.to_csv(f"./data/outputs/results-{start_chunk}-{end_chunk}.csv")
             #
             # # load csv and save to database
