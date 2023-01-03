@@ -33,6 +33,18 @@ def write_curtailment_data(df: pd.DataFrame):
         engine = get_db_connection()
         if "local_datetime" in df.columns:
             df = df.rename(columns={"local_datetime": "time"})
+        if "Time" in df.columns:
+            df = df.rename(columns={"Time": "time"})
+        if "Level_FPN" in df.columns:
+            df = df.rename(columns={"Level_FPN": "level_fpn"})
+        if "Level_BOAL" in df.columns:
+            df = df.rename(columns={"Level_BOAL": "level_boal"})
+        if "Level_After_BOAL" in df.columns:
+            df = df.rename(columns={"Level_After_BOAL": "level_after_boal"})
+        if "delta" in df.columns:
+            df = df.rename(columns={"delta": "delta_mw"})
+
+        df = df[['time','level_fpn','level_boal','level_after_boal','delta_mw','cost_gbp']]
 
         logger.info(f"Adding curtailment to database ({len(df)}")
 

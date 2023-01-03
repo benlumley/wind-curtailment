@@ -4,6 +4,7 @@ from datetime import datetime, timezone, timedelta
 from typing import Optional
 
 import pandas as pd
+import numpy as np
 import psutil
 from sqlalchemy import create_engine
 
@@ -68,9 +69,15 @@ def fetch_and_load_data(
         drop_and_initialize_tables(db_url)
         drop_and_initialize_bod_table(db_url)
 
-        data_df = read_data(start_time=start_chunk, end_time=end_chunk)
+        df = None
+        if check_data:
+            import time
+            # time.sleep(np.random.uniform(0,5))
+            data_df = read_data(start_time=start_chunk, end_time=end_chunk)
+        else:
+            data_df = []
 
-        if (len(data_df) > 0) or (not check_data):
+        if len(data_df) > 0:
             logger.warning(f'Found data between {start_chunk} and {end_chunk}, so wont pull any.')
         else:
 
@@ -125,7 +132,7 @@ def fetch_and_load_data(
                 logger.warning("Writing the df_sbp failed, but going to carry on anyway")
                 logger.error(e)
 
-            # bump up the start_chunk by 30 minutes
-            start_chunk = start_chunk + pd.Timedelta(f"{chunk_size_minutes}T")
+        # bump up the start_chunk by 30 minutes
+        start_chunk = start_chunk + pd.Timedelta(f"{chunk_size_minutes}T")
 
     return df
