@@ -6,8 +6,8 @@ from lib.data.main import analyze_curtailment
 import plotly.graph_objects as go
 
 DATA_PATH = Path("./data/locations")
-start_time = "2021-01-11 00:00:00"
-end_time = "2021-01-12 00:00:00"
+start_time = "2021-01-16 00:00:00"
+end_time = "2021-01-17 00:00:00"
 
 # load locations
 df_bm = pd.read_csv(DATA_PATH / "bm_units_with_locations.csv")
@@ -19,7 +19,6 @@ df_bm.set_index("unit", drop=True, inplace=True)
 # load curtailment
 physical_data_database = f"phys_data_{start_time}_{end_time}.db"
 db = DbRepository(physical_data_database)
-a = db.get_data_for_time_range(start_time=start_time, end_time=end_time)
 df_curtilament = analyze_curtailment(db, start_time=start_time, end_time=end_time, group_by_unit=False)
 
 
@@ -38,7 +37,7 @@ for time in pd.date_range(start=start_time, end=end_time, freq="30T"):
 
     print(df_all["delta"].sum())
 
-    df_all["size"] = df_all["delta"] + 1
+    df_all["size"] = df_all["delta"]*2 + 3
 
     fig = go.Figure(data=go.Scattermapbox(
         lon=df_all['lng'],
@@ -53,11 +52,11 @@ for time in pd.date_range(start=start_time, end=end_time, freq="30T"):
     )
     fig.update_layout(mapbox_style="carto-positron", mapbox_zoom=4.5, mapbox_center={"lat": 55, "lon": -3})
     print('Saving image')
-    fig.write_image(f"video/{time}.png", width=600, height=800)
+    fig.write_image(f"{image_folder}/{time}.png", width=600, height=800)
 
 # make video
 import os, cv2
-video_name = f'video/video_{start_time}_{end_time}.avi'
+video_name = f'{image_folder}/video_{start_time}_{end_time}.avi'
 images = sorted([img for img in os.listdir(image_folder) if img.endswith(".png")])
 
 # TODO sort by file name
